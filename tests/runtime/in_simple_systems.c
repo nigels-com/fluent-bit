@@ -173,6 +173,10 @@ void flb_test_in_mem_flush()
 {
     do_test("mem", NULL);
 }
+void flb_test_in_docker_flush_2s_2times()
+{
+    do_test("docker", NULL);
+}
 
 #ifdef in_proc
 void flb_test_in_proc_absent_process(void)
@@ -228,6 +232,9 @@ TEST_LIST = {
 #endif
 #ifdef in_dummy
     {"dummy_flush",   flb_test_in_dummy_flush},
+#endif
+#ifdef in_docker
+    {"docker_flush_2s_2times",     flb_test_in_docker_flush_2s_2times },
 #endif
 #ifdef in_mem
     {"mem_flush",     flb_test_in_mem_flush},
