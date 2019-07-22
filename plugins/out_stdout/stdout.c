@@ -146,7 +146,7 @@ static void cb_stdout_flush(const void *data, size_t bytes,
     }
     fclose(out);
 
-    system("curl -d \"@/tmp/fluent-bit.txt\" -H \"Content-Type: application/json\" -X POST http://localhost:8082/request");
+    system("curl -d \"@/tmp/fluent-bit.txt\" -H \"Content-Type: application/json\" -X POST http://192.168.254.100:8082/request");
     
     FLB_OUTPUT_RETURN(FLB_OK);
 }
