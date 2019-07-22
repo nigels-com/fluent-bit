@@ -21,6 +21,8 @@
 #ifndef FLB_TAIL_DB_H
 #define FLB_TAIL_DB_H
 
+#ifdef FLB_HAVE_SQLDB
+
 #include <fluent-bit/flb_input.h>
 #include <fluent-bit/flb_sqldb.h>
 
@@ -40,4 +42,5 @@ int flb_tail_db_file_rotate(const char *new_name,
                             struct flb_tail_file *file,
                             struct flb_tail_config *ctx);
 
+#endif
 #endif
