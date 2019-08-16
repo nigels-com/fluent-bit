@@ -184,7 +184,7 @@ static int parse_proc_line(char *line,
                 return -1;
             }
         }
-        ctx->entry[i-1].now = strtoul(sentry->value ,NULL ,10);
+        ctx->entry[i-1].now = strtoull(sentry->value ,NULL ,10);
         i++;
     }
 
