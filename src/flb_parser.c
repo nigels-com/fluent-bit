@@ -391,12 +391,9 @@ static int proc_types_str(const char *types_str, struct flb_parser_types **types
     return i;
 }
 
-/* Load parsers from a configuration file */
-int flb_parser_conf_file(const char *file, struct flb_config *config)
+/* Load parser sections into config*/
+int flb_parser_sections(const char * file, struct flb_config *config, struct mk_rconf *fconf)
 {
-    int ret;
-    char tmp[PATH_MAX + 1];
-    const char *cfg = NULL;
     char *name;
     char *format;
     char *regex;
@@ -407,39 +404,10 @@ int flb_parser_conf_file(const char *file, struct flb_config *config)
     char *str;
     int time_keep;
     int types_len;
-    struct mk_rconf *fconf;
     struct mk_rconf_section *section;
     struct mk_list *head;
-    struct stat st;
     struct flb_parser_types *types = NULL;
     struct mk_list *decoders;
-
-#ifndef FLB_HAVE_STATIC_CONF
-    ret = stat(file, &st);
-    if (ret == -1 && errno == ENOENT) {
-        /* Try to resolve the real path (if exists) */
-        if (file[0] == '/') {
-            flb_utils_error(FLB_ERR_CFG_PARSER_FILE);
-            return -1;
-        }
-
-        if (config->conf_path) {
-            snprintf(tmp, PATH_MAX, "%s%s", config->conf_path, file);
-            cfg = tmp;
-        }
-    }
-    else {
-        cfg = file;
-    }
-
-    fconf = mk_rconf_open(cfg);
-#else
-    fconf = flb_config_static_open(file);
-#endif
-
-    if (!fconf) {
-        return -1;
-    }
 
     /* Read all [PARSER] sections */
     mk_list_foreach(head, &fconf->sections) {
@@ -459,22 +427,22 @@ int flb_parser_conf_file(const char *file, struct flb_config *config)
         /* Name */
         name = mk_rconf_section_get_key(section, "Name", MK_RCONF_STR);
         if (!name) {
-            flb_error("[parser] no parser 'name' found in file '%s'", cfg);
-            goto fconf_error;
+            flb_error("[parser] no parser 'name' found in file '%s'", file);
+            goto cleanup;
         }
 
         /* Format */
         format = mk_rconf_section_get_key(section, "Format", MK_RCONF_STR);
         if (!format) {
-            flb_error("[parser] no parser 'format' found for '%s' in file '%s'", name, cfg);
-            goto fconf_error;
+            flb_error("[parser] no parser 'format' found for '%s' in file '%s'", name, file);
+            goto cleanup;
         }
 
         /* Regex (if format is regex) */
         regex = mk_rconf_section_get_key(section, "Regex", MK_RCONF_STR);
         if (!regex && strcmp(format, "regex") == 0) {
-            flb_error("[parser] no parser 'regex' found for '%s' in file '%s", name, cfg);
-            goto fconf_error;
+            flb_error("[parser] no parser 'regex' found for '%s' in file '%s", name, file);
+            goto cleanup;
         }
 
         /* Time_Format */
@@ -517,7 +485,7 @@ int flb_parser_conf_file(const char *file, struct flb_config *config)
         if (!flb_parser_create(name, format, regex,
                                time_fmt, time_key, time_offset, time_keep,
                                types, types_len, decoders, config)) {
-            goto fconf_error;
+            goto cleanup;
         }
 
         flb_debug("[parser] new parser registered: %s", name);
@@ -544,10 +512,9 @@ int flb_parser_conf_file(const char *file, struct flb_config *config)
         decoders = NULL;
     }
 
-    mk_rconf_free(fconf);
     return 0;
 
- fconf_error:
+cleanup:
     flb_free(name);
     flb_free(format);
     if (regex) {
@@ -565,8 +532,48 @@ int flb_parser_conf_file(const char *file, struct flb_config *config)
     if (decoders) {
         flb_parser_decoder_list_destroy(decoders);
     }
-    mk_rconf_free(fconf);
     return -1;
+}
+
+/* Load parsers from a configuration file */
+int flb_parser_conf_file(const char *file, struct flb_config *config)
+{
+    int ret = -1;
+    char tmp[PATH_MAX + 1];
+    const char *cfg = NULL;
+    struct mk_rconf *fconf;
+    struct stat st;
+
+#ifndef FLB_HAVE_STATIC_CONF
+    ret = stat(file, &st);
+    if (ret == -1 && errno == ENOENT) {
+        /* Try to resolve the real path (if exists) */
+        if (file[0] == '/') {
+            flb_utils_error(FLB_ERR_CFG_PARSER_FILE);
+            return -1;
+        }
+
+        if (config->conf_path) {
+            snprintf(tmp, PATH_MAX, "%s%s", config->conf_path, file);
+            cfg = tmp;
+        }
+    }
+    else {
+        cfg = file;
+    }
+
+    fconf = mk_rconf_open(cfg);
+#else
+    fconf = flb_config_static_open(file);
+#endif
+
+    if (!fconf) {
+        return -1;
+    }
+
+    ret = flb_parser_sections(cfg, config, fconf);
+    mk_rconf_free(fconf);
+    return ret;
 }
 
 struct flb_parser *flb_parser_get(const char *name, struct flb_config *config)
