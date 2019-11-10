@@ -7,6 +7,8 @@ pthread_mutex_t result_mutex = PTHREAD_MUTEX_INITIALIZER;
 char *output = NULL;
 int  num_output = 0;
 
+const int sleepSec = 2; /* Twice the flush timeout to account for jitter */
+
 /* Test data */
 
 /* Test functions */
@@ -147,7 +149,7 @@ void flb_test_filter_nest_multi_nest(void)
     bytes = flb_lib_push(ctx, in_ffd, p, strlen(p));
     TEST_CHECK(bytes == strlen(p));
 
-    sleep(1); /* waiting flush */
+    sleep(sleepSec); /* waiting flush */
     count = get_output_num();
 
     TEST_CHECK_(count == expected, "Expected number of events %d, got %d", expected, count );
@@ -220,7 +222,7 @@ void flb_test_filter_nest_multi_lift(void)
     bytes = flb_lib_push(ctx, in_ffd, p, strlen(p));
     TEST_CHECK(bytes == strlen(p));
 
-    sleep(1); /* waiting flush */
+    sleep(sleepSec); /* waiting flush */
     count = get_output_num();
 
     TEST_CHECK_(count == expected, "Expected number of events %d, got %d", expected, count );
@@ -285,7 +287,7 @@ void flb_test_filter_nest_single(void)
     bytes = flb_lib_push(ctx, in_ffd, p, strlen(p));
     TEST_CHECK(bytes == strlen(p));
 
-    sleep(1); /* waiting flush */
+    sleep(sleepSec); /* waiting flush */
     output = get_output();
 
     TEST_CHECK_(output != NULL, "Expected output to not be NULL");
