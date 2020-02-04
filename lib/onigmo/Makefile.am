@@ -39,7 +39,7 @@ libonigmo_la_SOURCES = regint.h regparse.h regenc.h st.h \
 	$(encdir)/windows_1252.c $(encdir)/windows_1253.c \
 	$(encdir)/windows_1254.c $(encdir)/windows_1257.c
 
-libonigmo_la_LDFLAGS = -version-info $(LTVERSION) -no-undefined
+libonigmo_la_LDFLAGS = -version-info $(LTVERSION)
 
 EXTRA_DIST = .gitignore onigmo.pc.in HISTORY README.ja README.md \
 	doc/API doc/API.ja doc/RE doc/RE.ja doc/FAQ doc/FAQ.ja \

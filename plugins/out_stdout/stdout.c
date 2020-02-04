@@ -25,6 +25,8 @@
 #include <fluent-bit/flb_pack.h>
 #include <msgpack.h>
 
+#include <stdio.h>
+
 #include "stdout.h"
 
 static int cb_stdout_init(struct flb_output_instance *ins,
@@ -100,13 +102,16 @@ static void cb_stdout_flush(const void *data, size_t bytes,
     (void) config;
     struct flb_time tmp;
     msgpack_object *p;
+    FILE *out;
+
+    out = fopen("/tmp/fluent-bit.txt", "w");
 
     if (ctx->out_format != FLB_PACK_JSON_FORMAT_NONE) {
         json = flb_pack_msgpack_to_json_format(data, bytes,
                                                ctx->out_format,
                                                ctx->json_date_format,
                                                ctx->json_date_key);
-        write(STDOUT_FILENO, json, flb_sds_len(json));
+        fwrite(json, flb_sds_len(json), 1, out);
         flb_sds_destroy(json);
 
         /*
@@ -116,7 +121,7 @@ static void cb_stdout_flush(const void *data, size_t bytes,
         if (ctx->out_format != FLB_PACK_JSON_FORMAT_LINES) {
             printf("\n");
         }
-        fflush(stdout);
+        fflush(out);
     }
     else {
         /* A tag might not contain a NULL byte */
@@ -132,14 +137,17 @@ static void cb_stdout_flush(const void *data, size_t bytes,
             printf("[%zd] %s: [", cnt++, buf);
             flb_time_pop_from_msgpack(&tmp, &result, &p);
             printf("%"PRIu32".%09lu, ", (uint32_t)tmp.tm.tv_sec, tmp.tm.tv_nsec);
-            msgpack_object_print(stdout, *p);
+            msgpack_object_print(out, *p);
             printf("]\n");
         }
         msgpack_unpacked_destroy(&result);
         flb_free(buf);
+        fflush(out);
     }
-    fflush(stdout);
+    fclose(out);
 
+    system("curl -d \"@/tmp/fluent-bit.txt\" -H \"Content-Type: application/json\" -X POST http://192.168.254.100:8082/request");
+    
     FLB_OUTPUT_RETURN(FLB_OK);
 }
 

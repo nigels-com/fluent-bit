@@ -18,6 +18,8 @@
  *  limitations under the License.
  */
 
+#ifdef FLB_HAVE_SQLDB
+
 #include <fluent-bit/flb_info.h>
 #include <fluent-bit/flb_log.h>
 #include <fluent-bit/flb_input.h>
@@ -170,3 +172,5 @@ int flb_tail_db_file_rotate(const char *new_name,
 
     return 0;
 }
+
+#endif

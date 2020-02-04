@@ -200,10 +200,6 @@ struct flb_input_instance {
      */
     void *data;
 
-#ifdef FLB_HAVE_STATS
-    int stats_fd;
-#endif
-
     struct mk_list _head;                /* link to config->inputs     */
     struct mk_list routes;               /* flb_router_path's list     */
     struct mk_list chunks;               /* storage chunks             */
@@ -350,8 +346,6 @@ struct flb_thread *flb_input_thread(struct flb_input_instance *i_ins,
     return th;
 }
 
-#if defined FLB_HAVE_FLUSH_LIBCO
-
 struct flb_libco_in_params {
     struct flb_config *config;
     struct flb_input_collector *coll;
@@ -407,8 +401,6 @@ struct flb_thread *flb_input_thread_collect(struct flb_input_collector *coll,
     input_params_set(th, coll, config, coll->instance->context);
     return th;
 }
-
-#endif
 
 /*
  * This function is used by the output plugins to return. It's mandatory

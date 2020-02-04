@@ -135,7 +135,6 @@ struct flb_config *flb_config_init()
 
     /* Flush */
     config->flush        = FLB_CONFIG_FLUSH_SECS;
-    config->flush_method = FLB_FLUSH_LIBCO;
     config->daemon       = FLB_FALSE;
     config->init_time    = time(NULL);
     config->kernel       = flb_kernel_info();
@@ -310,10 +309,6 @@ void flb_config_exit(struct flb_config *config)
     if (config->http_port) {
         flb_free(config->http_port);
     }
-#endif
-
-#ifdef FLB_HAVE_STATS
-    flb_stats_exit(config);
 #endif
 
     if (config->storage_path) {

@@ -143,9 +143,11 @@ static int tail_fs_check(struct flb_input_instance *i_ins,
             memcpy(&fst->st, &st, sizeof(struct stat));
 
             /* Update offset in database file */
+#ifdef FLB_HAVE_SQLDB
             if (ctx->db) {
                 flb_tail_db_file_offset(file, ctx);
             }
+#endif
         }
 
         if (file->offset < st.st_size) {
